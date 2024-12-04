@@ -2,3 +2,4 @@ streamlit
 streamlit_extras
 praw
 wordcloud
+openpyxl
