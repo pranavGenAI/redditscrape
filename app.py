@@ -4,7 +4,7 @@ import pandas as pd
 from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
 import hashlib
-st.set_page_config(page_title="Reddit Scraper", page_icon=">", layout="wide")
+st.set_page_config(page_title="Reddit Scraper", page_icon="🕷", layout="wide")
 background_html = """
 <!DOCTYPE html>
 <html lang="en">
@@ -159,10 +159,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-spacer, col = st.columns([5, 1])  
-with col:  
-    st.image('https://www.vgen.it/wp-content/uploads/2021/04/logo-accenture-ludo.png', width = 120)
-
 st.markdown("""
     <style>
         @keyframes gradientAnimation {
@@ -196,13 +192,6 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "username" not in st.session_state:
     st.session_state.username = ""
-
-# Configure Google Generative AI with the API key
-#GOOGLE_API_KEY = st.secrets['GEMINI_API_KEY']
-# GOOGLE_API_KEY = "AIzaSyCAh0Ed38QtD8KwE_-hhRgn_n-IIntdTI0"
-# #genai.configure(api_key=GOOGLE_API_KEY)
-groq_api_key = "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"
-    # Display the Groq logo
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
