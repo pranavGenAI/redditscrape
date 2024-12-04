@@ -184,7 +184,7 @@ st.markdown("""
         }
     </style>
     <p class="animated-gradient-text">
-        Reddit Scraper Tool - Extract Posts and Comments!
+        Reddit Scraper Tool 🕷- Extract Posts and Comments!
     </p>
 """, unsafe_allow_html=True)
 
