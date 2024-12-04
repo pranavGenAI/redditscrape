@@ -210,7 +210,7 @@ def hash_password(password):
 # Define users and hashed passwords for simplicity
 users = {
     "pranav.baviskar": hash_password("pranav123"),
-    "akshay.bakhru": hash_password("akshay123")
+    "d.l.mukherjee": hash_password("debo123")
 }
 
 def login():
