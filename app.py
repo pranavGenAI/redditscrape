@@ -293,10 +293,19 @@ def main():
                 posts_df = pd.concat([posts_df, temp_df], ignore_index=True)
                 all_comments.extend(post["Comments"])  # Add comments to list for word cloud
 
+
+
+            # Save DataFrame to Excel
+            excel_file = "reddit_data.xlsx"
+            posts_df.to_excel(excel_file, index=False)
+
+            # Provide download link
+            with open(excel_file, "rb") as f:
+                st.download_button("Download Excel File", f, file_name=excel_file, mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
             # Display data in Streamlit
             st.write(posts_df)
-
-            # Generate WordCloud without stopwords
+                        # Generate WordCloud without stopwords
             stopwords = set(STOPWORDS)  # Built-in stopwords
             text = " ".join(all_comments)  # Combine all comments into a single string
 
@@ -318,13 +327,6 @@ def main():
             plt.axis("off")
             st.pyplot(plt)
 
-            # Save DataFrame to Excel
-            excel_file = "reddit_data.xlsx"
-            posts_df.to_excel(excel_file, index=False)
-
-            # Provide download link
-            with open(excel_file, "rb") as f:
-                st.download_button("Download Excel File", f, file_name=excel_file, mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         else:
             st.warning("Please enter a valid subreddit name.")
 
