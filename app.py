@@ -215,7 +215,7 @@ def fetch_data(subreddit_name, num_posts):
     return posts_data
 
 # Streamlit UI components
-col1, col2, col3 = st.column([1,1,1])
+col1, col2, col3 = st.columns([1,1,1])
 # Input for subreddit and number of posts
 with col1:
 	subreddit_name = st.text_input("Enter Subreddit Name (e.g., BenefitsAdviceUK):", "BenefitsAdviceUK")
