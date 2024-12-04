@@ -191,6 +191,56 @@ st.markdown("""
     </p>
 """, unsafe_allow_html=True)
 
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "username" not in st.session_state:
+    st.session_state.username = ""
+
+# Configure Google Generative AI with the API key
+#GOOGLE_API_KEY = st.secrets['GEMINI_API_KEY']
+# GOOGLE_API_KEY = "AIzaSyCAh0Ed38QtD8KwE_-hhRgn_n-IIntdTI0"
+# #genai.configure(api_key=GOOGLE_API_KEY)
+groq_api_key = "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"
+    # Display the Groq logo
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+# Define users and hashed passwords for simplicity
+users = {
+    "pranav.baviskar": hash_password("pranav123"),
+    "akshay.bakhru": hash_password("akshay123")
+}
+
+def login():
+    col1, col2= st.columns([0.3, 0.7])  # Create three columns with equal width
+    with col1:  # Center the input fields in the middle column
+        st.title("Login")
+        st.write("Username")
+        username = st.text_input("",  label_visibility="collapsed")
+        st.write("Password")
+        password = st.text_input("", type="password",  label_visibility="collapsed")
+        
+        if st.button("Sign in"):
+            hashed_password = hash_password(password)
+            if username in users and users[username] == hashed_password:
+                st.session_state.logged_in = True
+                st.session_state.username = username
+                st.success("Logged in successfully!")
+                st.rerun()  # Refresh to show logged-in state
+            else:
+                st.error("Invalid username or password")
+
+def logout():
+    # Clear session state on logout
+    st.session_state.logged_in = False
+    st.session_state.username = ""
+    st.success("Logged out successfully!")
+    st.rerun()  # Refresh to show logged-out state
+
+# Path to the logo image
+logo_url = "https://www.vgen.it/wp-content/uploads/2021/04/logo-accenture-ludo.png"
+
 # Authenticate with the Reddit API
 reddit = praw.Reddit(
     client_id='M76KeSHxyDtLprwCnw-tAg',
@@ -216,61 +266,74 @@ def fetch_data(subreddit_name, num_posts):
     
     return posts_data
 
+def main():
+    
 # Streamlit UI components
-col1, col2, col3 = st.columns([1,1,1])
-# Input for subreddit and number of posts
-with col1:
-    subreddit_name = st.text_input("Enter Subreddit Name (e.g., BenefitsAdviceUK):", "BenefitsAdviceUK")
-    num_posts = st.number_input("Enter Number of Posts to Retrieve:", min_value=1, max_value=100, value=10)
-
+    col1, col2, col3 = st.columns([1,1,1])
+    # Input for subreddit and number of posts
+    with col1:
+        subreddit_name = st.text_input("Enter Subreddit Name (e.g., BenefitsAdviceUK):", "BenefitsAdviceUK")
+        num_posts = st.number_input("Enter Number of Posts to Retrieve:", min_value=1, max_value=100, value=10)
+   
 # Button to scrape and display data
-if st.button("Submit"):
-    if subreddit_name:
-        # Fetch data
-        st.write(f"Fetching data from r/{subreddit_name}...")
-        data = fetch_data(subreddit_name, num_posts)
+    if st.button("Submit"):
+        if subreddit_name:
+            # Fetch data
+            st.write(f"Fetching data from r/{subreddit_name}...")
+            data = fetch_data(subreddit_name, num_posts)
 
-        # Convert to DataFrame
-        posts_df = pd.DataFrame(columns=["Title", "Comments"])
-        all_comments = []  # List to store all comments for word cloud
+            # Convert to DataFrame
+            posts_df = pd.DataFrame(columns=["Title", "Comments"])
+            all_comments = []  # List to store all comments for word cloud
 
-        for post in data:
-            temp_df = pd.DataFrame(post["Comments"], columns=["Comments"])
-            temp_df["Title"] = post["Title"]
-            posts_df = pd.concat([posts_df, temp_df], ignore_index=True)
-            all_comments.extend(post["Comments"])  # Add comments to list for word cloud
+            for post in data:
+                temp_df = pd.DataFrame(post["Comments"], columns=["Comments"])
+                temp_df["Title"] = post["Title"]
+                posts_df = pd.concat([posts_df, temp_df], ignore_index=True)
+                all_comments.extend(post["Comments"])  # Add comments to list for word cloud
 
-        # Display data in Streamlit
-        st.write(posts_df)
+            # Display data in Streamlit
+            st.write(posts_df)
 
-        # Generate WordCloud without stopwords
-        stopwords = set(STOPWORDS)  # Built-in stopwords
-        text = " ".join(all_comments)  # Combine all comments into a single string
+            # Generate WordCloud without stopwords
+            stopwords = set(STOPWORDS)  # Built-in stopwords
+            text = " ".join(all_comments)  # Combine all comments into a single string
 
-        wordcloud = WordCloud(
-            width=800, 
-            height=400, 
-            background_color='white',
-            stopwords=stopwords,  # Remove common stopwords
-            max_words=200,        # Limit to top 200 words
-            colormap='viridis',   # Use a color map for better aesthetics
-            contour_color='black', 
-            contour_width=2       # Add contour to the word cloud
-        ).generate(text)
+            wordcloud = WordCloud(
+                width=800, 
+                height=400, 
+                background_color='white',
+                stopwords=stopwords,  # Remove common stopwords
+                max_words=200,        # Limit to top 200 words
+                colormap='viridis',   # Use a color map for better aesthetics
+                contour_color='black', 
+                contour_width=2       # Add contour to the word cloud
+            ).generate(text)
 
-        # Display the word cloud
-        st.subheader("Word Cloud of Comments (without stopwords)")
-        plt.figure(figsize=(8, 8), facecolor=None)
-        plt.imshow(wordcloud, interpolation="bilinear")
-        plt.axis("off")
-        st.pyplot(plt)
+            # Display the word cloud
+            st.subheader("Word Cloud of Comments (without stopwords)")
+            plt.figure(figsize=(8, 8), facecolor=None)
+            plt.imshow(wordcloud, interpolation="bilinear")
+            plt.axis("off")
+            st.pyplot(plt)
 
-        # Save DataFrame to Excel
-        excel_file = "reddit_data.xlsx"
-        posts_df.to_excel(excel_file, index=False)
+            # Save DataFrame to Excel
+            excel_file = "reddit_data.xlsx"
+            posts_df.to_excel(excel_file, index=False)
 
-        # Provide download link
-        with open(excel_file, "rb") as f:
-            st.download_button("Download Excel File", f, file_name=excel_file, mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            # Provide download link
+            with open(excel_file, "rb") as f:
+                st.download_button("Download Excel File", f, file_name=excel_file, mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        else:
+            st.warning("Please enter a valid subreddit name.")
+
+
+if __name__ == "__main__":
+    if st.session_state.logged_in:
+        col1, col2, col3 = st.columns([10, 10, 1.5])
+        with col3:
+            if st.button("Logout"):
+                logout()
+        main()
     else:
-        st.warning("Please enter a valid subreddit name.")
+        login()
