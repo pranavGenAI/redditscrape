@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
-st.set_page_config(page_title="Fiscal Forecasting", page_icon=">", layout="wide")
+st.set_page_config(page_title="Reddit Scraper", page_icon=">", layout="wide")
 background_html = """
 <!DOCTYPE html>
 <html lang="en">
@@ -215,11 +215,11 @@ def fetch_data(subreddit_name, num_posts):
     return posts_data
 
 # Streamlit UI components
-st.title("Reddit Scraper - Extract Posts and Comments")
-
+col1, col2, col3 = [1,1,1]
 # Input for subreddit and number of posts
-subreddit_name = st.text_input("Enter Subreddit Name (e.g., BenefitsAdviceUK):", "BenefitsAdviceUK")
-num_posts = st.number_input("Enter Number of Posts to Retrieve:", min_value=1, max_value=100, value=10)
+with col1:
+	subreddit_name = st.text_input("Enter Subreddit Name (e.g., BenefitsAdviceUK):", "BenefitsAdviceUK")
+	num_posts = st.number_input("Enter Number of Posts to Retrieve:", min_value=1, max_value=100, value=10)
 
 # Button to scrape and display data
 if st.button("Submit"):
