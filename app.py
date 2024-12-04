@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
+import hashlib
 st.set_page_config(page_title="Reddit Scraper", page_icon=">", layout="wide")
 background_html = """
 <!DOCTYPE html>
