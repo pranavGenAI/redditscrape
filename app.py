@@ -33,7 +33,7 @@ background_html = """
 
         // Arrays to store bubbles
         let bubbles = [];
-        const numBubbles = 30;
+        const numBubbles = 100;
         const glowDuration = 1000; // Glow duration in milliseconds
 
         // Function to initialize bubbles
@@ -177,7 +177,7 @@ st.markdown("""
 
         .animated-gradient-text {
             font-family: "Graphik Semibold";
-            font-size: 42px;
+            font-size: 30px;
             background: linear-gradient(45deg, #22ebe8 30%, #dc14b7 55%, #fe647b 20%);
             background-size: 300% 200%;
             -webkit-background-clip: text;
@@ -215,7 +215,7 @@ def fetch_data(subreddit_name, num_posts):
     return posts_data
 
 # Streamlit UI components
-col1, col2, col3 = [1,1,1]
+col1, col2, col3 = st.column([1,1,1])
 # Input for subreddit and number of posts
 with col1:
 	subreddit_name = st.text_input("Enter Subreddit Name (e.g., BenefitsAdviceUK):", "BenefitsAdviceUK")
