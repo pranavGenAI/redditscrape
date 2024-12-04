@@ -320,8 +320,12 @@ def main():
                 contour_width=2       # Add contour to the word cloud
             ).generate(text)
 
+            st.markdown("""
+                Create and customize your own word cloud here: 
+                [WordCloud Generator](https://wordcloudgeneratorapp.streamlit.app/)
+            """, unsafe_allow_html=True)
             # Display the word cloud
-            st.subheader("Word Cloud of Comments (without stopwords)")
+            st.subheader("Word Cloud of Comments")
             plt.figure(figsize=(8, 8), facecolor=None)
             plt.imshow(wordcloud, interpolation="bilinear")
             plt.axis("off")
