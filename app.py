@@ -157,9 +157,10 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
 spacer, col = st.columns([5, 1])  
 with col:  
-	st.image('https://www.vgen.it/wp-content/uploads/2021/04/logo-accenture-ludo.png', width = 120)
+    st.image('https://www.vgen.it/wp-content/uploads/2021/04/logo-accenture-ludo.png', width = 120)
 
 st.markdown("""
     <style>
@@ -189,6 +190,7 @@ st.markdown("""
         Reddit Scraper Tool - Extract Posts and Comments!
     </p>
 """, unsafe_allow_html=True)
+
 # Authenticate with the Reddit API
 reddit = praw.Reddit(
     client_id='M76KeSHxyDtLprwCnw-tAg',
@@ -218,8 +220,8 @@ def fetch_data(subreddit_name, num_posts):
 col1, col2, col3 = st.columns([1,1,1])
 # Input for subreddit and number of posts
 with col1:
-	subreddit_name = st.text_input("Enter Subreddit Name (e.g., BenefitsAdviceUK):", "BenefitsAdviceUK")
-	num_posts = st.number_input("Enter Number of Posts to Retrieve:", min_value=1, max_value=100, value=10)
+    subreddit_name = st.text_input("Enter Subreddit Name (e.g., BenefitsAdviceUK):", "BenefitsAdviceUK")
+    num_posts = st.number_input("Enter Number of Posts to Retrieve:", min_value=1, max_value=100, value=10)
 
 # Button to scrape and display data
 if st.button("Submit"):
@@ -233,9 +235,10 @@ if st.button("Submit"):
         all_comments = []  # List to store all comments for word cloud
 
         for post in data:
-            for comment in post["Comments"]:
-                posts_df = posts_df.append({"Title": post["Title"], "Comments": comment}, ignore_index=True)
-                all_comments.append(comment)  # Add each comment to list for word cloud
+            temp_df = pd.DataFrame(post["Comments"], columns=["Comments"])
+            temp_df["Title"] = post["Title"]
+            posts_df = pd.concat([posts_df, temp_df], ignore_index=True)
+            all_comments.extend(post["Comments"])  # Add comments to list for word cloud
 
         # Display data in Streamlit
         st.write(posts_df)
