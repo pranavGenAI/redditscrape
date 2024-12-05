@@ -4,6 +4,8 @@ import pandas as pd
 from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
 import hashlib
+from datetime import datetime, timezone
+
 st.set_page_config(page_title="Reddit Scraper", page_icon="🕸️", layout="wide")
 background_html = """
 <!DOCTYPE html>
@@ -260,41 +262,62 @@ def fetch_data(subreddit_name, num_posts):
 
     return posts_data
 
+def fetch_data_by_date(subreddit_name, num_posts, start_date, end_date):
+    subreddit = reddit.subreddit(subreddit_name)
+    posts_data = []
+
+    # Convert dates to UTC timestamps
+    start_timestamp = int(start_date.timestamp())
+    end_timestamp = int(end_date.timestamp())
+
+    # Fetch posts and filter by date
+    for post in subreddit.new(limit=num_posts):
+        post_time = int(post.created_utc)  # Post creation time in UTC
+
+        if start_timestamp <= post_time <= end_timestamp:
+            post_data = {
+                "Title": post.title,
+                "Description": post.selftext,
+                "Created Time": datetime.fromtimestamp(post_time, tz=timezone.utc),
+                "Comments": []
+            }
+
+            # Fetch comments
+            post.comments.replace_more(limit=0)
+            for comment in post.comments.list():
+                post_data["Comments"].append(comment.body)
+
+            posts_data.append(post_data)
+
+    return posts_data
 # Main function
 def main():
-    col1, col2, col3 = st.columns([1, 1, 1])
+    col1, col2 = st.columns(2)
     with col1:
         subreddit_name = st.text_input("Enter Subreddit Name (e.g., BenefitsAdviceUK):", "BenefitsAdviceUK")
-        num_posts = st.number_input("Enter Number of Posts to Retrieve:", min_value=1, max_value=1000, value=10)
-    with col3:
-        st.markdown("""
-        Create and customize your own word cloud here: 
-        [WordCloud Generator](https://wordcloudgeneratorapp.streamlit.app/)
-        """, unsafe_allow_html=True)
+        num_posts = st.number_input("Enter Number of Posts to Retrieve:", min_value=1, max_value=1000, value=100)
+
+    with col2:
+        # Date range inputs
+        start_date = st.date_input("Start Date", datetime.now().date())
+        end_date = st.date_input("End Date", datetime.now().date())
+
+        # Validate date range
+        if start_date > end_date:
+            st.error("Start Date must be earlier than End Date.")
+
     if st.button("Submit"):
         if subreddit_name:
-            st.write(f"Fetching data from r/{subreddit_name}...")
-            data = fetch_data(subreddit_name, num_posts)
+            st.write(f"Fetching data from r/{subreddit_name} between {start_date} and {end_date}...")
+
+            # Fetch data with date filtering
+            data = fetch_data_by_date(subreddit_name, num_posts, start_date, end_date)
 
             # Convert to DataFrame
-            posts_df = pd.DataFrame(columns=["Title", "Description", "Comments"])
-            all_comments = []
+            posts_df = pd.DataFrame(data)
 
-            for post in data:
-                temp_df = pd.DataFrame(post["Comments"], columns=["Comments"])
-                temp_df["Title"] = post["Title"]
-                temp_df["Description"] = post["Description"]  # Add description to DataFrame
-                posts_df = pd.concat([posts_df, temp_df], ignore_index=True)
-                all_comments.extend(post["Comments"])
-
-            # Remove duplicate rows from the DataFrame
-            posts_df.drop_duplicates(subset=["Comments"], inplace=True)
-
-            # Remove duplicate comments from the list
-            unique_comments = list(set(all_comments))
-
-            # Save DataFrame to Excel
-            excel_file = "reddit_data_with_descriptions.xlsx"
+            # Save to Excel
+            excel_file = "reddit_data_filtered.xlsx"
             posts_df.to_excel(excel_file, index=False)
 
             with open(excel_file, "rb") as f:
@@ -306,26 +329,6 @@ def main():
                 )
 
             st.write(posts_df)
-
-            # Generate WordCloud
-            stopwords = set(STOPWORDS)
-            text = " ".join(unique_comments)  # Use unique comments
-            wordcloud = WordCloud(
-                width=800,
-                height=400,
-                background_color='white',
-                stopwords=stopwords,
-                max_words=200,
-                colormap='viridis',
-                contour_color='black',
-                contour_width=2
-            ).generate(text)
-
-            st.subheader("Word Cloud of Comments")
-            plt.figure(figsize=(8, 8), facecolor=None)
-            plt.imshow(wordcloud, interpolation="bilinear")
-            plt.axis("off")
-            st.pyplot(plt)
 
         else:
             st.warning("Please enter a valid subreddit name.")
