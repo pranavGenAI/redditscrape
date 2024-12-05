@@ -327,7 +327,10 @@ def main():
     if st.button("Submit"):
         if subreddit_name:
             st.write(f"Fetching data from r/{subreddit_name} between {start_date} and {end_date}...")
-
+            st.markdown("""
+                Create and customize your own word cloud here: 
+                [WordCloud Generator](https://wordcloudgeneratorapp.streamlit.app/)
+            """, unsafe_allow_html=True)
             # Fetch data with date filtering
             data = fetch_data_by_date(subreddit_name, num_posts, start_date, end_date)
             
