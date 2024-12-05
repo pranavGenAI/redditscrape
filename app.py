@@ -266,6 +266,7 @@ def fetch_data(subreddit_name, num_posts):
 def fetch_data_by_date(subreddit_name, num_posts, start_date, end_date):
     subreddit = reddit.subreddit(subreddit_name)
     posts_data = []
+    unique_post_ids = set()  # Set to store unique post IDs
 
     # Convert date to datetime with time, then to UTC timestamps
     start_datetime = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
@@ -281,7 +282,7 @@ def fetch_data_by_date(subreddit_name, num_posts, start_date, end_date):
         if start_timestamp <= post_time <= end_timestamp:
             # Convert post time to datetime object (timezone-aware)
             post_created_time = datetime.fromtimestamp(post_time, tz=timezone.utc)
-            
+
             # Fetch comments
             post.comments.replace_more(limit=0)
             for comment in post.comments.list():
@@ -293,6 +294,7 @@ def fetch_data_by_date(subreddit_name, num_posts, start_date, end_date):
                 }
 
                 posts_data.append(post_data)
+                unique_post_ids.add(post.id)  # Add the unique post ID to the set
                 post_count += 1
 
                 if post_count >= num_posts:
@@ -301,8 +303,10 @@ def fetch_data_by_date(subreddit_name, num_posts, start_date, end_date):
         if post_count >= num_posts:
             break  # Stop when we reach the desired number of posts
 
-    return posts_data
+    # Print the number of unique posts extracted
+    st.write(f"Number of unique posts extracted: {len(unique_post_ids)}")
 
+    return posts_data
 
 # Main function
 def main():
