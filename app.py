@@ -279,29 +279,30 @@ def fetch_data_by_date(subreddit_name, num_posts, start_date, end_date):
         post_time = int(post.created_utc)  # Post creation time in UTC
 
         if start_timestamp <= post_time <= end_timestamp:
-            post_data = {
-                "Title": post.title,
-                "Description": post.selftext,
-                "Created Time": datetime.fromtimestamp(post_time, tz=timezone.utc),
-                "Comments": []
-            }
-
+            # Convert post time to datetime object (timezone-aware)
+            post_created_time = datetime.fromtimestamp(post_time, tz=timezone.utc)
+            
             # Fetch comments
             post.comments.replace_more(limit=0)
             for comment in post.comments.list():
-                post_data["Comments"].append(comment.body)
+                post_data = {
+                    "Title": post.title,
+                    "Description": post.selftext if post.selftext else "No Description",  # Add description
+                    "Comment": comment.body,
+                    "Created Time": post_created_time.replace(tzinfo=None)  # Remove timezone info from post created time
+                }
 
-            posts_data.append(post_data)
-            post_count += 1
+                posts_data.append(post_data)
+                post_count += 1
 
-            if post_count >= num_posts:
-                break  # Stop when we reach the desired number of posts
+                if post_count >= num_posts:
+                    break  # Stop when we reach the desired number of posts
 
-    # Convert datetime columns to timezone-unaware
-    for post in posts_data:
-        post["Created Time"] = post["Created Time"].replace(tzinfo=None)  # Remove timezone info
+        if post_count >= num_posts:
+            break  # Stop when we reach the desired number of posts
 
     return posts_data
+
 
 # Main function
 def main():
@@ -329,9 +330,6 @@ def main():
             # Convert to DataFrame
             posts_df = pd.DataFrame(data)
             
-            # Make "Created Time" timezone unaware
-            posts_df["Created Time"] = posts_df["Created Time"].dt.tz_localize(None)
-            
             # Save to Excel
             excel_file = "reddit_data_filtered.xlsx"
             posts_df.to_excel(excel_file, index=False)
@@ -343,7 +341,8 @@ def main():
                     file_name=excel_file,
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
-
+            
+            st.write(posts_df)
             st.write(posts_df)
 
         else:
