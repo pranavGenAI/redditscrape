@@ -267,14 +267,15 @@ def fetch_data_by_date(subreddit_name, num_posts, start_date, end_date):
     subreddit = reddit.subreddit(subreddit_name)
     posts_data = []
 
-        # Convert date to datetime with time, then to UTC timestamps
+    # Convert date to datetime with time, then to UTC timestamps
     start_datetime = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
     end_datetime = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
     start_timestamp = int(start_datetime.timestamp())
     end_timestamp = int(end_datetime.timestamp())
 
     # Fetch posts and filter by date
-    for post in subreddit.new(limit=num_posts):
+    post_count = 0
+    for post in subreddit.new(limit=None):  # Removing the limit here to handle pagination
         post_time = int(post.created_utc)  # Post creation time in UTC
 
         if start_timestamp <= post_time <= end_timestamp:
@@ -291,8 +292,17 @@ def fetch_data_by_date(subreddit_name, num_posts, start_date, end_date):
                 post_data["Comments"].append(comment.body)
 
             posts_data.append(post_data)
+            post_count += 1
+
+            if post_count >= num_posts:
+                break  # Stop when we reach the desired number of posts
+
+    # Convert datetime columns to timezone-unaware
+    for post in posts_data:
+        post["Created Time"] = post["Created Time"].replace(tzinfo=None)  # Remove timezone info
 
     return posts_data
+
 # Main function
 def main():
     col1, col2 = st.columns(2)
@@ -315,14 +325,17 @@ def main():
 
             # Fetch data with date filtering
             data = fetch_data_by_date(subreddit_name, num_posts, start_date, end_date)
-
+            
             # Convert to DataFrame
             posts_df = pd.DataFrame(data)
-
+            
+            # Make "Created Time" timezone unaware
+            posts_df["Created Time"] = posts_df["Created Time"].dt.tz_localize(None)
+            
             # Save to Excel
             excel_file = "reddit_data_filtered.xlsx"
             posts_df.to_excel(excel_file, index=False)
-
+            
             with open(excel_file, "rb") as f:
                 st.download_button(
                     "Download Excel File",
