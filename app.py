@@ -245,7 +245,11 @@ def fetch_data(subreddit_name, num_posts):
 
     # Fetch the latest posts based on user input (num_posts)
     for post in subreddit.new(limit=num_posts):  # Use .hot() or .top() for other categories
-        post_data = {"Title": post.title, "Comments": []}
+        post_data = {
+            "Title": post.title,
+            "Description": post.selftext if post.selftext else "No Description",  # Add description
+            "Comments": []
+        }
 
         # Fetch comments for the post
         post.comments.replace_more(limit=0)  # Avoid "Load more comments" links
@@ -253,67 +257,64 @@ def fetch_data(subreddit_name, num_posts):
             post_data["Comments"].append(comment.body)
 
         posts_data.append(post_data)
-    
+
     return posts_data
 
 def main():
-    
-# Streamlit UI components
-    col1, col2, col3 = st.columns([1,1,1])
-    # Input for subreddit and number of posts
+    col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
         subreddit_name = st.text_input("Enter Subreddit Name (e.g., BenefitsAdviceUK):", "BenefitsAdviceUK")
-        num_posts = st.number_input("Enter Number of Posts to Retrieve:", min_value=1, max_value=100, value=10)
-   
-# Button to scrape and display data
+        num_posts = st.number_input("Enter Number of Posts to Retrieve:", min_value=1, max_value=1000, value=10)
+
     if st.button("Submit"):
         if subreddit_name:
-            # Fetch data
             st.write(f"Fetching data from r/{subreddit_name}...")
             data = fetch_data(subreddit_name, num_posts)
 
             # Convert to DataFrame
-            posts_df = pd.DataFrame(columns=["Title", "Comments"])
-            all_comments = []  # List to store all comments for word cloud
+            posts_df = pd.DataFrame(columns=["Title", "Description", "Comments"])
+            all_comments = []
 
             for post in data:
                 temp_df = pd.DataFrame(post["Comments"], columns=["Comments"])
                 temp_df["Title"] = post["Title"]
+                temp_df["Description"] = post["Description"]  # Add description to DataFrame
                 posts_df = pd.concat([posts_df, temp_df], ignore_index=True)
-                all_comments.extend(post["Comments"])  # Add comments to list for word cloud
-
-
+                all_comments.extend(post["Comments"])
 
             # Save DataFrame to Excel
-            excel_file = "reddit_data.xlsx"
+            excel_file = "reddit_data_with_descriptions.xlsx"
             posts_df.to_excel(excel_file, index=False)
 
-            # Provide download link
             with open(excel_file, "rb") as f:
-                st.download_button("Download Excel File", f, file_name=excel_file, mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                st.download_button(
+                    "Download Excel File",
+                    f,
+                    file_name=excel_file,
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
 
-            # Display data in Streamlit
             st.write(posts_df)
-                        # Generate WordCloud without stopwords
-            stopwords = set(STOPWORDS)  # Built-in stopwords
-            text = " ".join(all_comments)  # Combine all comments into a single string
 
+            # Generate WordCloud
+            stopwords = set(STOPWORDS)
+            text = " ".join(all_comments)
             wordcloud = WordCloud(
-                width=800, 
-                height=400, 
+                width=800,
+                height=400,
                 background_color='white',
-                stopwords=stopwords,  # Remove common stopwords
-                max_words=200,        # Limit to top 200 words
-                colormap='viridis',   # Use a color map for better aesthetics
-                contour_color='black', 
-                contour_width=2       # Add contour to the word cloud
+                stopwords=stopwords,
+                max_words=200,
+                colormap='viridis',
+                contour_color='black',
+                contour_width=2
             ).generate(text)
 
             st.markdown("""
                 Create and customize your own word cloud here: 
                 [WordCloud Generator](https://wordcloudgeneratorapp.streamlit.app/)
             """, unsafe_allow_html=True)
-            # Display the word cloud
+
             st.subheader("Word Cloud of Comments")
             plt.figure(figsize=(8, 8), facecolor=None)
             plt.imshow(wordcloud, interpolation="bilinear")
@@ -322,7 +323,6 @@ def main():
 
         else:
             st.warning("Please enter a valid subreddit name.")
-
 
 if __name__ == "__main__":
     if st.session_state.logged_in:
