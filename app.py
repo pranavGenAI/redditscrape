@@ -260,12 +260,17 @@ def fetch_data(subreddit_name, num_posts):
 
     return posts_data
 
+# Main function
 def main():
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
         subreddit_name = st.text_input("Enter Subreddit Name (e.g., BenefitsAdviceUK):", "BenefitsAdviceUK")
         num_posts = st.number_input("Enter Number of Posts to Retrieve:", min_value=1, max_value=1000, value=10)
-
+    with col3:
+        st.markdown("""
+        Create and customize your own word cloud here: 
+        [WordCloud Generator](https://wordcloudgeneratorapp.streamlit.app/)
+        """, unsafe_allow_html=True)
     if st.button("Submit"):
         if subreddit_name:
             st.write(f"Fetching data from r/{subreddit_name}...")
@@ -281,6 +286,12 @@ def main():
                 temp_df["Description"] = post["Description"]  # Add description to DataFrame
                 posts_df = pd.concat([posts_df, temp_df], ignore_index=True)
                 all_comments.extend(post["Comments"])
+
+            # Remove duplicate rows from the DataFrame
+            posts_df.drop_duplicates(subset=["Comments"], inplace=True)
+
+            # Remove duplicate comments from the list
+            unique_comments = list(set(all_comments))
 
             # Save DataFrame to Excel
             excel_file = "reddit_data_with_descriptions.xlsx"
@@ -298,7 +309,7 @@ def main():
 
             # Generate WordCloud
             stopwords = set(STOPWORDS)
-            text = " ".join(all_comments)
+            text = " ".join(unique_comments)  # Use unique comments
             wordcloud = WordCloud(
                 width=800,
                 height=400,
@@ -309,11 +320,6 @@ def main():
                 contour_color='black',
                 contour_width=2
             ).generate(text)
-
-            st.markdown("""
-                Create and customize your own word cloud here: 
-                [WordCloud Generator](https://wordcloudgeneratorapp.streamlit.app/)
-            """, unsafe_allow_html=True)
 
             st.subheader("Word Cloud of Comments")
             plt.figure(figsize=(8, 8), facecolor=None)
