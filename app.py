@@ -4,7 +4,7 @@ import pandas as pd
 from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
 import hashlib
-from datetime import datetime, timezone
+from datetime import datetime
 
 st.set_page_config(page_title="Reddit Scraper", page_icon="🕸️", layout="wide")
 background_html = """
@@ -266,9 +266,11 @@ def fetch_data_by_date(subreddit_name, num_posts, start_date, end_date):
     subreddit = reddit.subreddit(subreddit_name)
     posts_data = []
 
-    # Convert dates to UTC timestamps
-    start_timestamp = int(start_date.timestamp())
-    end_timestamp = int(end_date.timestamp())
+    # Convert date to datetime with time, then to UTC timestamps
+    start_datetime = datetime.combine(start_date, datetime.min.time())
+    end_datetime = datetime.combine(end_date, datetime.max.time())
+    start_timestamp = int(start_datetime.timestamp())
+    end_timestamp = int(end_datetime.timestamp())
 
     # Fetch posts and filter by date
     for post in subreddit.new(limit=num_posts):
