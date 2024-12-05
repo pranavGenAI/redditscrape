@@ -266,9 +266,9 @@ def fetch_data_by_date(subreddit_name, num_posts, start_date, end_date):
     subreddit = reddit.subreddit(subreddit_name)
     posts_data = []
 
-    # Convert date to datetime with time, then to UTC timestamps
-    start_datetime = datetime.combine(start_date, datetime.min.time())
-    end_datetime = datetime.combine(end_date, datetime.max.time())
+        # Convert date to datetime with time, then to UTC timestamps
+    start_datetime = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
+    end_datetime = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
     start_timestamp = int(start_datetime.timestamp())
     end_timestamp = int(end_datetime.timestamp())
 
