@@ -343,7 +343,6 @@ def main():
                 )
             
             st.write(posts_df)
-            st.write(posts_df)
 
         else:
             st.warning("Please enter a valid subreddit name.")
