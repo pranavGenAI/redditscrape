@@ -161,6 +161,16 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+st.markdown(
+    """
+    <style>
+        .stAppHeader.st-emotion-cache-h4xjwg.e10jh26i0 {
+            display: none;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 st.markdown("""
     <style>
