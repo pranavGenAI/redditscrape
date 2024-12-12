@@ -256,65 +256,20 @@ def fetch_data(subreddit_name, num_posts):
     subreddit = reddit.subreddit(subreddit_name)
     posts_data = []
 
-    # Fetch the latest posts based on user input (num_posts)
-    for post in subreddit.new(limit=num_posts):  # Use .hot() or .top() for other categories
+    for post in subreddit.new(limit=num_posts):
         post_data = {
             "Title": post.title,
-            "Description": post.selftext if post.selftext else "No Description",  # Add description
+            "Description": post.selftext if post.selftext else "No Description",
+            "Created Date": datetime.utcfromtimestamp(post.created_utc).strftime('%Y-%m-%d %H:%M:%S'),
             "Comments": []
         }
 
         # Fetch comments for the post
-        post.comments.replace_more(limit=0)  # Avoid "Load more comments" links
-        for comment in post.comments.list():  # Iterate through all comments
+        post.comments.replace_more(limit=0)
+        for comment in post.comments.list():
             post_data["Comments"].append(comment.body)
 
         posts_data.append(post_data)
-
-    return posts_data
-
-def fetch_data_by_date(subreddit_name, num_posts, start_date, end_date):
-    subreddit = reddit.subreddit(subreddit_name)
-    posts_data = []
-    unique_post_ids = set()  # Set to store unique post IDs
-
-    # Convert date to datetime with time, then to UTC timestamps
-    start_datetime = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
-    end_datetime = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
-    start_timestamp = int(start_datetime.timestamp())
-    end_timestamp = int(end_datetime.timestamp())
-
-    # Fetch posts and filter by date
-    post_count = 0
-    for post in subreddit.new(limit=None):  # Removing the limit here to handle pagination
-        post_time = int(post.created_utc)  # Post creation time in UTC
-
-        if start_timestamp <= post_time <= end_timestamp:
-            # Convert post time to datetime object (timezone-aware)
-            post_created_time = datetime.fromtimestamp(post_time, tz=timezone.utc)
-
-            # Fetch comments
-            post.comments.replace_more(limit=0)
-            for comment in post.comments.list():
-                post_data = {
-                    "Title": post.title,
-                    "Description": post.selftext if post.selftext else "No Description",  # Add description
-                    "Comment": comment.body,
-                    "Created Time": post_created_time.replace(tzinfo=None)  # Remove timezone info from post created time
-                }
-
-                posts_data.append(post_data)
-                unique_post_ids.add(post.id)  # Add the unique post ID to the set
-                post_count += 1
-
-                if post_count >= num_posts:
-                    break  # Stop when we reach the desired number of posts
-
-        if post_count >= num_posts:
-            break  # Stop when we reach the desired number of posts
-
-    # Print the number of unique posts extracted
-    st.write(f"Number of unique posts extracted: {len(unique_post_ids)}")
 
     return posts_data
 
@@ -325,32 +280,18 @@ def main():
         subreddit_name = st.text_input("Enter Subreddit Name (e.g., BenefitsAdviceUK):", "BenefitsAdviceUK")
         num_posts = st.number_input("Enter Number of Posts to Retrieve:", min_value=1, max_value=1000, value=100)
 
-    with col2:
-        # Date range inputs
-        start_date = st.date_input("Start Date", datetime.now().date())
-        end_date = st.date_input("End Date", datetime.now().date())
-
-        # Validate date range
-        if start_date > end_date:
-            st.error("Start Date must be earlier than End Date.")
-
     if st.button("Submit"):
         if subreddit_name:
-            st.write(f"Fetching data from r/{subreddit_name} between {start_date} and {end_date}...")
-            st.markdown("""
-                Create and customize your own word cloud here: 
-                [WordCloud Generator](https://wordcloudgeneratorapp.streamlit.app/)
-            """, unsafe_allow_html=True)
-            # Fetch data with date filtering
-            data = fetch_data_by_date(subreddit_name, num_posts, start_date, end_date)
-            
+            st.write(f"Fetching data from r/{subreddit_name}...")
+            data = fetch_data(subreddit_name, num_posts)
+
             # Convert to DataFrame
             posts_df = pd.DataFrame(data)
-            
+
             # Save to Excel
-            excel_file = "reddit_data_filtered.xlsx"
+            excel_file = "reddit_data.xlsx"
             posts_df.to_excel(excel_file, index=False)
-            
+
             with open(excel_file, "rb") as f:
                 st.download_button(
                     "Download Excel File",
@@ -358,18 +299,11 @@ def main():
                     file_name=excel_file,
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
-            
-            st.write(posts_df)
 
+            st.write(posts_df)
         else:
             st.warning("Please enter a valid subreddit name.")
 
 if __name__ == "__main__":
-    if st.session_state.logged_in:
-        col1, col2, col3 = st.columns([10, 10, 1.5])
-        with col3:
-            if st.button("Logout"):
-                logout()
-        main()
-    else:
-        login()
+    main()
+
