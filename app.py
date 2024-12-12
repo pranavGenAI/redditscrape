@@ -278,7 +278,7 @@ def main():
     col1, col2 = st.columns(2)
     with col1:
         subreddit_name = st.text_input("Enter Subreddit Name (e.g., BenefitsAdviceUK):", "BenefitsAdviceUK")
-        num_posts = st.number_input("Enter Number of Posts to Retrieve:", min_value=1, max_value=1000, value=100)
+        num_posts = st.number_input("Enter Number of Posts to Retrieve:", min_value=1, max_value=10000, value=100)
 
     if st.button("Submit"):
         if subreddit_name:
