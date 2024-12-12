@@ -283,6 +283,10 @@ def main():
     if st.button("Submit"):
         if subreddit_name:
             st.write(f"Fetching data from r/{subreddit_name}...")
+            st.markdown("""
+                Create and customize your own word cloud here: 
+                [WordCloud Generator](https://wordcloudgeneratorapp.streamlit.app/)
+            """, unsafe_allow_html=True)            
             data = fetch_data(subreddit_name, num_posts)
 
             # Convert to DataFrame
